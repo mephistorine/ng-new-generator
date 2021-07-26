@@ -1,13 +1,32 @@
 <script>
   import { get, writable } from 'svelte/store'
+  import camelize from './camelize'
+  import buildCommand from './build-command'
 
   import '../node_modules/normalize.css/normalize.css'
 
   const form = writable({})
 
+  /**
+   * @type HTMLFormElement
+   */
+  let formElementRef
+
+  /**
+   * @type HTMLPreElement
+   */
+  let commandResultRef
+
   form.subscribe((formValue) => {
-    console.log(formValue)
+    commandResultRef.innerHTML = buildCommand(formValue)
   })
+
+  function updateFormValue(partialFormValue) {
+    form.set({
+      ...get(form),
+      ...partialFormValue
+    })
+  }
 
   /**
    * Input event handler
@@ -31,10 +50,17 @@
       }
     }
 
-    form.set({
-      ...get(form),
-      [ target.name ]: value
+    updateFormValue({
+      [ camelize(target.name) ]: value
     })
+  }
+
+  /**
+   *
+   * @param {PointerEvent} event
+   */
+  function onClickCopyButton(event) {
+    console.log(event)
   }
 </script>
 
@@ -42,32 +68,30 @@
   <header class="header">
     <img class="logo" src="https://angular.io/assets/images/logos/angular/angular.svg" alt="Angular logo">
     <h1>ng-new-generator</h1>
-    <button>Copy</button>
+    <button on:click={onClickCopyButton}>Copy</button>
   </header>
 
   <div class="command-result-container">
-    <pre id="command-result">
-      ng new hello --routing
-    </pre>
+    <pre id="command-result" bind:this={commandResultRef}></pre>
   </div>
 
   <div class="command-settings">
-    <form>
+    <form bind:this={formElementRef} enctype="multipart/form-data">
       <p class="field">
         <label for="name">Name</label>
-        <input on:input={handleInputChange} id="name" type="text" name="name">
+        <input on:input={handleInputChange} id="name" type="text" name="name" value="angular-awesome">
       </p>
 
       <p class="field">
         <label>
-          <input on:input={handleInputChange} type="checkbox" name="commit">
+          <input on:input={handleInputChange} type="checkbox" name="commit" checked>
           <span>Commit</span>
         </label>
       </p>
 
       <p class="field">
         <label>
-          <input on:input={handleInputChange} type="checkbox" name="create-application">
+          <input on:input={handleInputChange} type="checkbox" name="create-application" checked>
           <span>Create application</span>
         </label>
       </p>
@@ -82,6 +106,13 @@
       <p class="field">
         <label for="directory">Directory</label>
         <input on:input={handleInputChange} id="directory" type="text" name="directory">
+      </p>
+
+      <p class="field">
+        <label>
+          <input on:input={handleInputChange} name="dry-run" type="checkbox">
+          <span>Dry run</span>
+        </label>
       </p>
 
       <p class="field">
@@ -136,7 +167,6 @@
       <fieldset>
         <legend>Package manager</legend>
         <p>
-
           <label>
             <input on:input={handleInputChange} type="radio" name="package-manager" value="npm">
             NPM
@@ -200,20 +230,41 @@
 
       <p class="field">
         <label>
-          <input on:input={handleInputChange} name="strict" type="checkbox">
+          <input on:input={handleInputChange} name="strict" type="checkbox" checked>
           <span>Strict</span>
         </label>
       </p>
 
-      <p class="field">
-        <label for="style">Style</label>
-        <select on:input={handleInputChange} name="style" id="style">
-          <option value="css">CSS</option>
-          <option value="scss">SCSS</option>
-          <option value="sass">SASS</option>
-          <option value="less">LESS</option>
-        </select>
-      </p>
+      <fieldset>
+        <legend>Style</legend>
+        <p>
+          <label>
+            <input on:input={handleInputChange} type="radio" name="style" value="css">
+            CSS
+          </label>
+        </p>
+        <p>
+
+          <label>
+            <input on:input={handleInputChange} type="radio" name="style" value="scss">
+            SCSS
+          </label>
+        </p>
+        <p>
+
+          <label>
+            <input on:input={handleInputChange} type="radio" name="style" value="sass">
+            SASS
+          </label>
+        </p>
+        <p>
+
+          <label>
+            <input on:input={handleInputChange} type="radio" name="style" value="less">
+            LESS
+          </label>
+        </p>
+      </fieldset>
 
       <p class="field">
         <label>
@@ -222,14 +273,27 @@
         </label>
       </p>
 
-      <p class="field">
-        <label for="view-encapsulation">View encapsulation</label>
-        <select on:input={handleInputChange} name="view-encapsulation" id="view-encapsulation">
-          <option value="emulated">Emulated</option>
-          <option value="none">None</option>
-          <option value="shadowDom">ShadowDom</option>
-        </select>
-      </p>
+      <fieldset>
+        <legend>View encapsulation</legend>
+        <p>
+          <label>
+            <input on:input={handleInputChange} type="radio" name="view-encapsulation" value="css">
+            Emulated
+          </label>
+        </p>
+        <p>
+          <label>
+            <input on:input={handleInputChange} type="radio" name="view-encapsulation" value="scss">
+            None
+          </label>
+        </p>
+        <p>
+          <label>
+            <input on:input={handleInputChange} type="radio" name="view-encapsulation" value="sass">
+            ShadowDom
+          </label>
+        </p>
+      </fieldset>
     </form>
   </div>
 </main>
